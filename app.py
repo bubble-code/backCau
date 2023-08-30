@@ -1,16 +1,19 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 import spacy
 from sentence_transformers import SentenceTransformer, util
+from flask_cors import CORS
 
 # Crea una instancia de la aplicación Flask
 app = Flask(__name__)
+CORS(app)
 
 
 # Carga los modelos de procesamiento de lenguaje antes de la primera solicitud
 @app.before_first_request
 def load_models():
     # Carga el modelo de procesamiento de lenguaje de spaCy
-    global st_model_embedder, file_load_text, section_file_load, similarity_list
+    global st_model_embedder, file_load_text, section_file_load
+    global similarity_list 
     # Load el modelo de procesamiento de lenguaje de spaCy
     # nlp_model = spacy.load('es_core_news_lg')
 
@@ -39,34 +42,22 @@ def load_models():
             sentence, convert_to_tensor=True)
         sentence_embeddings.append((name, sentence, sentence_embedding))
 
-    # Calcular la similitud con las oraciones y almacenar en una lista
-    similarity_list = []
-    for seccion_name, sentence_text, sentence_embedding in sentence_embeddings:
+def query(self, query):
+    query_embedding = embedding_query(query=query)
+    similarity_list1 = []
+    for seccion_name, sentence_text, sentence_embedding in self.sentence_embeddings:
         similarity = util.pytorch_cos_sim(
             query_embedding, sentence_embedding)[0][0].item()
-        similarity_list.append((seccion_name, sentence_text, similarity))
+        similarity_list1.append((seccion_name, sentence_text, similarity))
 
     # Ordenar la lista por similitud en orden descendente
-    similarity_list.sort(key=lambda x: x[2], reverse=True)
+    similarity_list1.sort(key=lambda x: x[2], reverse=True)
 
-# Embedding de la consulta
-
+    return similarity_list1
 
 def embedding_query(query="¿Cómo actualizo el stock?"):
-    # questions = ["Como realizar una gestión de la evolución y operativa de los artículos"]
-
     query_embedding = st_model_embedder.encode(query, convert_to_tensor=True)
     return query_embedding
-
-    # Mostrar las primeras 20 oraciones más similares
-    # for i, (sentence, similarity) in enumerate(similarity_list[:20]):
-    #     print(sentence)
-    # print(f"Oración {i+1}:")
-    # print("Texto:", sentence)
-    # print("Similitud:", similarity)
-    # print()
-
-    # return nlp_model, st_model
 
 
 # Función para cargar el texto desde un archivo con manejo de errores
@@ -108,17 +99,36 @@ def tokenize_sections(sections, nlp_model):
     return section_tokenizer
 
 
-@app.route('/')
+@app.route('/',methods=['POST'])
 def hello():
+    # Verifica que se haya enviado una solicitud POST con datos JSON
+    if request.method == 'POST' and request.is_json:
+        # Procesa los datos de la solicitud
+        data = request.json
+        print(data['query'])
+        similarity_list = query(data['query'])
+        returnList = []
+        # for seccion_name, sentence_text, similarity in self.similarity_list[:5]:
+        #     returnList.append({
+        #     "section_name": seccion_name,
+        #     "sentence_text": sentence_text,
+        #     "similarity": similarity
+        #                     })
+        return jsonify(returnList)
+    return jsonify({"error": "No se ha podido procesar la solicitud."}), 400
+
+
+@app.route('/')
+def GetHome():
+    print('Cargando')
     returnList = []
     for seccion_name, sentence_text, similarity in similarity_list[:5]:
-        returnList.append({
+            returnList.append({
             "section_name": seccion_name,
             "sentence_text": sentence_text,
             "similarity": similarity
-        })
+                            })
     return jsonify(returnList)
-
 
 # Ejecuta la aplicación Flask
 if __name__ == '__main__':
