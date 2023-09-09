@@ -8,8 +8,8 @@ class Query:
         self.st_model_embedder = SentenceTransformer('paraphrase-MiniLM-L6-v2')
         self.dataclass = DataClass()
         try:
-            # self.file_load_text = self.load_text_from_file("../data/text.txt")
-            self.section_file_load = self.process_sections_text(self.dataclass.text)
+            self.section_file_load = self.load_text_from_file("../data/text.txt")
+            # self.section_file_load = self.process_sections_text(self.dataclass.text)
             self.sentence_embeddings = self.encode_sentences()
         except Exception as e:
             print("Error:", e)
