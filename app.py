@@ -14,16 +14,24 @@ query_instance = Query()
 @app.route('/',methods=['POST'])
 def hello():
     data = request.json
-    query = data['query']
-    result = "query_instance.query(query)"
-    return jsonify(query)
+    query = data['query']   
+    print(query)
+    returnList = []
+    similarity_list = query_instance.query(query)
+    for seccion_name, sentence_text, similarity in similarity_list[:5]:
+            returnList.append({
+            "section_name": seccion_name,
+            "sentence_text": sentence_text,
+            "similarity": similarity
+                            })
+    return jsonify(returnList)
 
 
-@app.route('/')
+@app.route('/') 
 def GetHome():
     print('Cargando')    
     returnList = []
-    similarity_list = query_instance.query("¿Cómo actualizo el stock?")
+    similarity_list = query_instance.query("¿Como copiar articulos?")
     for seccion_name, sentence_text, similarity in similarity_list[:5]:
             returnList.append({
             "section_name": seccion_name,
