@@ -54,7 +54,7 @@ class Query:
         similarity_list.sort(key=lambda x: x[2], reverse=True)
         return similarity_list
 
-    def embedding_query(self, query="¿Cómo actualizo el stock?"):
+    def embedding_query(self, query="Datos del Artículo"):
         query_embedding = self.st_model_embedder.encode(
             query, convert_to_tensor=True)
         return query_embedding
