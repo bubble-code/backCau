@@ -25,7 +25,7 @@ def hello():
         return jsonify(returnList)
     print(query)
     similarity_list = query_instance.query(query)
-    for seccion_name, sentence_text, similarity in similarity_list[:5]:
+    for seccion_name, sentence_text, similarity in similarity_list[:10]:
         returnList.append({
             "section_name": seccion_name,
             "sentence_text": sentence_text,
@@ -34,20 +34,20 @@ def hello():
     return jsonify(returnList)
 
 
-# @app.route('/')
-# def GetHome():
-#     print('Cargando')
-#     returnList = []
-#     similarity_list = query_instance.query("¿Como copiar articulos?")
-#     for seccion_name, sentence_text, similarity in similarity_list[:5]:
-#         returnList.append({
-#             "section_name": seccion_name,
-#             "sentence_text": sentence_text,
-#             "similarity": similarity
-#         })
-#     return jsonify(returnList)
+@app.route('/')
+def GetHome():
+    print('Cargando')
+    returnList = []
+    similarity_list = query_instance.query("Datos del Artículo")
+    for seccion_name, sentence_text, similarity in similarity_list[:10]:
+        returnList.append({
+            "section_name": seccion_name,
+            "sentence_text": sentence_text,
+            "similarity": similarity
+        })
+    return jsonify(returnList)
 
 
 # Ejecuta la aplicación Flask
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True,host='0.0.0.0',port=5001)
